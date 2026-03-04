@@ -4,7 +4,7 @@
 
 YCOMBO is an [eww](https://github.com/elkowar/eww) desktop widget that continuously surfaces the most relevant Hacker News posts on **AI agents, LLM engineering, agentic workflows, and software engineering best practices**, filtered from the noise, displayed directly on your desktop.
 
-![YCOMBO widget](screenshot.png)
+![YCOMBO widget](demo.gif)
 
 ---
 
