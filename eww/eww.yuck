@@ -1,0 +1,96 @@
+;; YCOMBO — eww widget
+;; Clickable HN feed for AI / agentic / dev content
+
+;; ── Data ─────────────────────────────────────────────────────────────────────
+(defpoll ycombo-data
+  :interval "2s"
+  :initial `{"updated":"loading…","offline":false,"latest":[],"top5":[]}`
+  `cat /tmp/ycombo_cache.json 2>/dev/null || echo '{"updated":"no data","offline":true,"latest":[],"top5":[]}' `)
+
+(defpoll ycombo-loading
+  :interval "250ms"
+  `[ -f /tmp/ycombo_loading ] && echo true || echo false`)
+
+(defpoll spinner-char
+  :interval "150ms"
+  `python3 -c "import time; c=['⠋','⠙','⠹','⠸','⠼','⠴','⠦','⠧','⠇','⠏']; print(c[int(time.time()*6.67)%10])"`)
+
+;; ── Window ───────────────────────────────────────────────────────────────────
+(defwindow ycombo
+  :monitor    0
+  :geometry   (geometry :x "15px" :y "46px" :width "860px" :anchor "top left")
+  :stacking   "bg"
+  :exclusive  false
+  :focusable  false
+  (ycombo-root))
+
+;; ── Root ─────────────────────────────────────────────────────────────────────
+(defvar ycombo-hovered false)
+
+(defwidget ycombo-root []
+  (eventbox :onhover "pid=$(cat /tmp/ycombo_fade.pid 2>/dev/null) && kill $pid 2>/dev/null; rm -f /tmp/ycombo_fade.pid; eww --config /home/archie/Documents/Github-Projects/ycombo/eww update ycombo-hovered=true"
+            :onhoverlost "(sleep 10 && eww --config /home/archie/Documents/Github-Projects/ycombo/eww update ycombo-hovered=false) & echo $! > /tmp/ycombo_fade.pid"
+    (box :class {ycombo-hovered ? "root root-visible" : "root root-hidden"} :orientation "v" :space-evenly false
+      (ycombo-header)
+      (ycombo-latest)
+      (box :class "top5-section" :orientation "v" :space-evenly false
+      (label :class "section-label" :halign "start" :text "    MUST READ — TOP 5")
+        (ycombo-top5))
+      (ycombo-footer))))
+
+;; ── Header ───────────────────────────────────────────────────────────────────
+(defwidget ycombo-header []
+  (box :class "header" :orientation "h" :space-evenly false :hexpand true))
+
+;; ── Latest 10 ────────────────────────────────────────────────────────────────
+(defwidget ycombo-latest []
+  (box :class "section" :orientation "v" :space-evenly false
+    (label :class "section-label" :halign "start"
+           :text "    LATEST — PAST 14 DAYS")
+    (scroll :vscroll true :hscroll false :height 420
+      (box :class "post-list" :orientation "v" :space-evenly false
+        (for post in {ycombo-data.latest}
+          (ycombo-post :post post :top false))))))
+
+;; ── Top 5 ────────────────────────────────────────────────────────────────────
+(defwidget ycombo-top5 []
+  (box :class "section top5" :orientation "v" :space-evenly false
+    (for post in {ycombo-data.top5}
+      (ycombo-post :post post :top true))))
+
+;; ── Post item ────────────────────────────────────────────────────────────────
+(defwidget ycombo-post [post top]
+  (button :class {top ? "post-btn post-top" : "post-btn"}
+          :tooltip "Open on Hacker News"
+          :onclick "chromium 'https://news.ycombinator.com/item?id=${post.id}' &"
+    (box :class "post-inner" :orientation "v" :space-evenly false
+      (box :orientation "h" :space-evenly false
+        (label :class "post-num" :text "${post.idx}.")
+        (label :class {top ? "post-title bold" : "post-title"}
+               :text {post.title}
+               :halign "start"
+               :hexpand true))
+      (label :class "post-meta"
+             :text "${post.pts} pts  ·  ${post.comments} comments  ·  ${post.ago}"
+             :halign "start"))))
+
+;; ── Footer ────────────────────────────────────────────────────────────────────
+(defwidget ycombo-footer []
+  (box :class "footer" :orientation "h" :space-evenly false :hexpand true
+    (button :class "btn-refresh"
+            :tooltip "Force refresh"
+            :onclick "/home/archie/Documents/Github-Projects/ycombo/ycombo-refresh.sh &"
+      "")
+    (label :class "footer-hint" :text "  Last Updated ")
+    (label :class "sig-time" :text {ycombo-data.offline ? "Never" : ycombo-data.updated})
+    (box :hexpand true)
+    (label :class "spinner-inline"
+           :visible {ycombo-loading == "true"}
+           :text {spinner-char})
+    (label :class "sig-offline"
+           :visible {ycombo-data.offline}
+           :text "  offline")
+    (button :class "btn-toggle"
+            :tooltip "Hide YCOMBO"
+            :onclick "eww --config /home/archie/Documents/Github-Projects/ycombo/eww close ycombo"
+      "")))
