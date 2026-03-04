@@ -27,6 +27,7 @@
 ;; ── Root ─────────────────────────────────────────────────────────────────────
 (defvar ycombo-hovered false)
 (defvar ycombo-always-on false)
+(defvar ycombo-scroll-height 420)
 
 (defwidget ycombo-root []
   (eventbox :onhover "pid=$(cat /tmp/ycombo_fade.pid 2>/dev/null) && kill $pid 2>/dev/null; rm -f /tmp/ycombo_fade.pid; eww --config /home/archie/Documents/Github-Projects/ycombo/eww update ycombo-hovered=true"
@@ -48,7 +49,7 @@
   (box :class "section" :orientation "v" :space-evenly false
     (label :class "section-label" :halign "start"
            :text "    LATEST — PAST 14 DAYS")
-    (scroll :vscroll true :hscroll false :height 420
+    (scroll :vscroll true :hscroll false :height {ycombo-scroll-height}
       (box :class "post-list" :orientation "v" :space-evenly false
         (for post in {ycombo-data.latest}
           (ycombo-post :post post :top false))))))
@@ -98,4 +99,5 @@
     (button :class "btn-toggle"
             :tooltip "Hide YCOMBO"
             :onclick "eww --config /home/archie/Documents/Github-Projects/ycombo/eww close ycombo"
-      "")))
+      "")
+    (label :class "resize-grip" :text "⠿")))

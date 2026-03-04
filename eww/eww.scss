@@ -214,6 +214,18 @@ scrollbar {
   }
 }
 
+// ── Resize grip ───────────────────────────────────────────────────────────────
+.resize-grip {
+  font-size: 13px;
+  color: #2e3d5a;
+  padding: 0 6px 0 4px;
+  transition: color 150ms ease;
+
+  &:hover {
+    color: #5e7caa;
+  }
+}
+
 // ── Spinner ───────────────────────────────────────────────────────────────────
 .spinner-inline {
   font-size: 18px;
