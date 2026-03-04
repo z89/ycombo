@@ -26,10 +26,11 @@
 
 ;; ── Root ─────────────────────────────────────────────────────────────────────
 (defvar ycombo-hovered false)
+(defvar ycombo-always-on false)
 
 (defwidget ycombo-root []
   (eventbox :onhover "pid=$(cat /tmp/ycombo_fade.pid 2>/dev/null) && kill $pid 2>/dev/null; rm -f /tmp/ycombo_fade.pid; eww --config /home/archie/Documents/Github-Projects/ycombo/eww update ycombo-hovered=true"
-            :onhoverlost "(sleep 10 && eww --config /home/archie/Documents/Github-Projects/ycombo/eww update ycombo-hovered=false) & echo $! > /tmp/ycombo_fade.pid"
+            :onhoverlost "${ycombo-always-on ? '' : '(sleep 10 && eww --config /home/archie/Documents/Github-Projects/ycombo/eww update ycombo-hovered=false) & echo $! > /tmp/ycombo_fade.pid'}"
     (box :class {ycombo-hovered ? "root root-visible" : "root root-hidden"} :orientation "v" :space-evenly false
       (ycombo-header)
       (ycombo-latest)
@@ -90,6 +91,10 @@
     (label :class "sig-offline"
            :visible {ycombo-data.offline}
            :text "  offline")
+    (button :class {ycombo-always-on ? "btn-always-on active" : "btn-always-on"}
+            :tooltip {ycombo-always-on ? "Disable always on" : "Keep always visible"}
+            :onclick "eww --config /home/archie/Documents/Github-Projects/ycombo/eww update ycombo-always-on=${ycombo-always-on ? 'false' : 'true'}"
+      "")
     (button :class "btn-toggle"
             :tooltip "Hide YCOMBO"
             :onclick "eww --config /home/archie/Documents/Github-Projects/ycombo/eww close ycombo"

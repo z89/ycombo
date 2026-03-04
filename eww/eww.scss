@@ -52,6 +52,27 @@
   margin-top: 0px;
 }
 
+// ── Scrollbar ────────────────────────────────────────────────────────────────
+scrollbar {
+  background-color: transparent;
+
+  slider {
+    min-width: 4px;
+    min-height: 30px;
+    border-radius: 2px;
+    background-color: rgba(94, 124, 170, 0.35);
+    transition: background-color 150ms ease;
+
+    &:hover {
+      background-color: rgba(94, 124, 170, 0.55);
+    }
+
+    &:active {
+      background-color: rgba(122, 223, 255, 0.50);
+    }
+  }
+}
+
 // ── Post list ────────────────────────────────────────────────────────────────
 .post-list {
   padding-top: 2px;
@@ -114,6 +135,37 @@
 .footer-hint {
   font-size: 11px;
   color: #91a5d5;
+}
+
+.btn-always-on {
+  padding: 1px 10px;
+  margin-right: 2px;
+  border-radius: 3px;
+
+  label {
+    font-size: 18px;
+    color: #5e7caa;
+  }
+
+  &:hover label {
+    color: #7adfff;
+  }
+
+  &:hover {
+    background-color: rgba(49, 154, 229, 0.12);
+  }
+
+  &.active label {
+    color: #7adfff;
+  }
+
+  &.active {
+    background-color: rgba(122, 223, 255, 0.10);
+  }
+
+  &.active:hover {
+    background-color: rgba(122, 223, 255, 0.18);
+  }
 }
 
 .btn-toggle {

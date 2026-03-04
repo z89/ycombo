@@ -12,7 +12,9 @@ YCOMBO is an [eww](https://github.com/elkowar/eww) desktop widget that continuou
 
 - **Latest 40 posts** refreshed every 5 minutes, sorted by recency (last 14 days), keyword-filtered for AI/agent/LLM relevance
 - **Must Read Top 5** highest-scored posts (80+ points) from the past 30 days, sorted by votes
+- **Scrollable latest posts** the latest section has a styled scrollbar for browsing long lists
 - **Fade-on-idle** panel sits at 10% opacity, fades to 100% on hover, fades back after 10 seconds
+- **Always-on mode** pin button next to hide keeps the widget fully visible, disabling the fade-out timer
 - **Pywal-aware styling** colours pulled from your wallpaper theme (requires pywal)
 - **Offline resilience** serves cached results when the network is unavailable, shows "Never" as last updated
 - **Zero auth** uses the [Algolia HN API](https://hn.algolia.com/api) (free, no key required)
