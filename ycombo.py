@@ -78,24 +78,14 @@ def fmt_pts(n: int) -> str:
 def trunc(s: str, n: int) -> str:
     return s if len(s) <= n else s[:n - 1] + "…"
 
-def fetch_latest(n: int = 20) -> list:
+def fetch_latest() -> list:
     seen: dict = {}
     for query in LATEST_QUERIES:
-        for h in algolia(query, by_date=True, hours=336, limit=30):
+        for h in algolia(query, by_date=True, hours=336, limit=50):
             oid = h.get("objectID")
             if oid not in seen and h.get("title") and is_relevant(h["title"]):
                 seen[oid] = h
-        if len(seen) >= n * 2:
-            break
-    results = sorted(seen.values(), key=lambda x: x.get("created_at_i", 0), reverse=True)
-    if len(results) < n:
-        for query in LATEST_QUERIES[:4]:
-            for h in algolia(query, by_date=True, hours=336, limit=30):
-                oid = h.get("objectID")
-                if oid not in seen and h.get("title") and is_relevant(h["title"]):
-                    seen[oid] = h
-        results = sorted(seen.values(), key=lambda x: x.get("created_at_i", 0), reverse=True)
-    return results[:n]
+    return sorted(seen.values(), key=lambda x: x.get("created_at_i", 0), reverse=True)
 
 def fetch_top5() -> list:
     seen: dict = {}
@@ -123,7 +113,7 @@ def write_cache(data: dict) -> None:
 
 def main():
     try:
-        latest = fetch_latest(40)
+        latest = fetch_latest()
         top5   = fetch_top5()
         data   = {
             "updated": datetime.now().strftime("%I:%M %p").lstrip("0"),

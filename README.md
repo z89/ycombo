@@ -12,7 +12,7 @@ YCOMBO is an [eww](https://github.com/elkowar/eww) desktop widget that continuou
 
 ## Features
 
-- **Latest 40 posts** refreshed every 5 minutes, sorted by recency (last 14 days), keyword-filtered for AI/agent/LLM relevance
+- **Latest posts** all relevant posts from the past 14 days, refreshed every 5 minutes, sorted by recency, keyword-filtered for AI/agent/LLM relevance
 - **Must Read Top 5** highest-scored posts (80+ points) from the past 30 days, sorted by votes
 - **Scrollable latest posts** the latest section has a styled scrollbar for browsing long lists
 - **Fade-on-idle** panel sits at 10% opacity, fades to 100% on hover, fades back after 10 seconds
@@ -97,7 +97,7 @@ Colours are set in `eww/eww.scss` using the pywal palette from your desktop them
 Every 5 minutes:
   ycombo-daemon.sh > ycombo.py
                        |-- fetch_latest()  > 8 Algolia queries, deduplicated,
-                       |                      keyword-filtered, sorted by date > top 40
+                       |                      keyword-filtered, sorted by date
                        +-- fetch_top5()    > 5 Algolia queries, 80+ pts,
                                               last 30d, sorted by score > top 5
                      |
