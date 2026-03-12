@@ -1,0 +1,249 @@
+/* YCOMBO - GTK3 CSS for Hyprland/Wayland */
+/* Colors injected by Python from matugen colors.conf */
+
+/* Force transparent window background (overrides GTK theme) */
+window, window.background {
+    background-color: transparent;
+    color: transparent;
+}
+
+/* Reset GTK theme defaults on all widgets */
+button, button:hover, button:active, button:focus {
+    background-image: none;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    text-shadow: none;
+    -gtk-icon-shadow: none;
+    outline: none;
+    padding: 0px;
+    min-width: 0px;
+    min-height: 0px;
+}
+
+box, label, scrolledwindow, viewport {
+    background-color: transparent;
+    background-image: none;
+}
+
+/* Root container - opacity-based fade */
+.root {
+    background-color: $yc_bg_92;
+    padding: 0px 20px 10px 16px;
+    border-radius: 10px;
+    opacity: 1;
+    transition: opacity 300ms ease;
+}
+
+.root.hidden {
+    opacity: 0.30;
+}
+
+.root.visible {
+    opacity: 1;
+}
+
+.root.closing {
+    opacity: 0;
+    transition: opacity 200ms ease;
+}
+
+/* Latest header row - padding here so grip + label both center */
+.latest-header {
+    padding: 20px 0px 10px 0px;
+}
+
+/* Section labels */
+.section-label {
+    font-family: "FiraCode Nerd Font Mono";
+    font-size: 13px;
+    color: $yc_outline;
+    padding: 20px 0px 10px 0px;
+}
+
+.section-label-latest {
+    padding: 0px;
+}
+
+.top5-section {
+    margin-top: 0px;
+}
+
+/* Scrollbar */
+scrollbar, scrollbar trough {
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    margin: 4px 4px 4px 0px;
+}
+
+scrollbar slider, scrollbar slider:hover, scrollbar slider:active {
+    min-width: 8px;
+    min-height: 40px;
+    border-radius: 4px;
+    border: none;
+    box-shadow: none;
+}
+
+scrollbar slider {
+    background-color: rgba(200, 200, 210, 0.35);
+    transition: background-color 150ms ease;
+}
+
+scrollbar slider:hover {
+    background-color: rgba(200, 200, 210, 0.55);
+}
+
+scrollbar slider:active {
+    background-color: rgba(200, 200, 210, 0.70);
+}
+
+/* Post list */
+.post-list {
+    padding: 2px 0px 0px 0px;
+}
+
+/* Post buttons */
+.post-btn, .post-btn:hover, .post-btn:active, .post-btn:focus {
+    border-radius: 4px;
+    padding: 8px 10px;
+    margin: 3px 0px;
+    border: none;
+    box-shadow: none;
+    background-image: none;
+    min-width: 0px;
+    min-height: 0px;
+    outline: none;
+}
+
+.post-btn {
+    background-color: transparent;
+    transition: background-color 100ms ease;
+}
+
+.post-btn:hover {
+    background-color: $yc_primary_13;
+}
+
+.post-btn:active {
+    background-color: $yc_primary_28;
+}
+
+.post-btn.post-top:hover {
+    background-color: $yc_tertiary_10;
+}
+
+.post-inner {
+    padding: 1px 0px;
+}
+
+.post-num {
+    font-family: "FiraCode Nerd Font Mono";
+    font-size: 13px;
+    color: $yc_secondary;
+    padding: 0px 4px 0px 0px;
+}
+
+.post-title {
+    font-family: "FiraCode Nerd Font Mono";
+    font-size: 13px;
+    font-weight: normal;
+    color: $yc_fg;
+}
+
+.post-title.bold {
+    font-weight: normal;
+    color: $yc_fg;
+}
+
+.post-meta {
+    font-family: "FiraCode Nerd Font Mono";
+    font-size: 13px;
+    color: $yc_fg_dim;
+    padding: 2px 0px 3px 32px;
+}
+
+/* Top bar */
+.top-bar {
+    padding: 16px 0px 8px 0px;
+}
+
+.sig-time {
+    font-family: "FiraCode Nerd Font Mono";
+    font-size: 13px;
+    color: $yc_outline;
+}
+
+.sig-offline {
+    font-family: "FiraCode Nerd Font Mono";
+    font-size: 14px;
+    color: $yc_error;
+}
+
+/* Icon buttons (EventBox based - no Adwaita interference) */
+.icon-btn {
+    border-radius: 4px;
+    font-family: "FiraCode Nerd Font Mono";
+    font-size: 14px;
+}
+
+.icon-btn label {
+    color: $yc_outline;
+    background-color: transparent;
+    transition: color 150ms ease;
+}
+
+.btn-refresh.hover label {
+    color: #77dd77;
+}
+
+.btn-always-on.hover label {
+    color: #00e5ff;
+}
+
+.btn-always-on.active label {
+    color: #00e5ff;
+}
+
+.btn-always-on.active.hover label {
+    color: #00ffff;
+}
+
+.btn-toggle label {
+    font-size: 18px;
+}
+
+.btn-toggle.hover label {
+    color: #ff1744;
+}
+
+/* Resize grip */
+.resize-grip {
+    padding: 3px 6px 0px 4px;
+    margin-right: 10px;
+    border-radius: 3px;
+    background-color: transparent;
+    transition: background-color 150ms ease;
+}
+
+.resize-grip:hover {
+    background-color: $yc_outline_15;
+}
+
+.resize-grip-icon {
+    font-family: "FiraCode Nerd Font Mono";
+    font-size: 18px;
+    color: $yc_outline_variant;
+}
+
+.resize-grip:hover .resize-grip-icon {
+    color: $yc_outline;
+}
+
+/* Spinner */
+.spinner-inline {
+    font-family: "FiraCode Nerd Font Mono";
+    font-size: 18px;
+    color: $yc_primary;
+    padding: 0px 8px 0px 0px;
+}

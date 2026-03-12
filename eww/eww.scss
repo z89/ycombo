@@ -1,58 +1,102 @@
-// YCOMBO — eww styles
-// Pywal palette: bg #050717 · cyan #7adfff · blue #319ae5 · lt-blue #a5d3f0
-//                muted #5e7caa · dim #91a5d5 · white #ffffff
+// YCOMBO eww styles
+// Colors from matugen (Material You from wallpaper)
 
-* {
-  all: unset;
-  font-family: "FiraCode Nerd Font Mono";
-  font-size: 12px;
-  color: #ffffff;
+@import 'colors';
+
+// Override GTK theme (matugen gtk.css sets opaque window background)
+window {
+  background-color: transparent;
 }
 
-// ── Root ─────────────────────────────────────────────────────────────────────
+* {
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  min-width: 0;
+  min-height: 0;
+  font-family: "FiraCode Nerd Font Mono";
+  font-size: 12px;
+  color: $yc-fg;
+  background-color: transparent;
+  background-image: none;
+  box-shadow: none;
+  text-shadow: none;
+}
+
+// Root - fade is driven by background-color alpha + text color alpha
+// CSS opacity composites against the GTK window surface (black), not the
+// Wayland compositor, so we control alpha directly in the surface buffer.
 .root {
-  background-color: rgba(5, 7, 23, 0.92);
+  background-color: transparentize($yc-bg, 0.08);
   padding: 0px 16px 10px 16px;
   border-radius: 10px;
-  transition: opacity 200ms ease;
+  transition: background-color 300ms ease;
 }
 
 .root-hidden {
-  opacity: 0.1;
+  background-color: transparentize($yc-bg, 0.92);
+  color: transparentize($yc-fg, 0.92);
+
+  .section-label { color: transparentize($yc-outline, 0.92); }
+  .post-num { color: transparentize($yc-secondary, 0.92); }
+  .post-title { color: transparentize($yc-fg, 0.92); }
+  .post-title.bold { color: transparentize($yc-fg, 0.92); }
+  .post-meta { color: transparentize($yc-fg-dim, 0.92); }
+  .sig-time { color: transparentize($yc-fg-dim, 0.92); }
+  .footer-hint { color: transparentize($yc-fg-dim, 0.92); }
+  .btn-refresh label { color: transparentize($yc-outline, 0.92); }
+  .btn-always-on label { color: transparentize($yc-outline, 0.92); }
+  .btn-toggle label { color: transparentize($yc-outline, 0.92); }
+  .resize-grip-icon { color: transparentize($yc-outline-variant, 0.92); }
+  .spinner-inline { color: transparentize($yc-primary, 0.92); }
+  scrollbar slider { background-color: transparent; }
 }
 
 .root-visible {
-  opacity: 1.0;
+  background-color: transparentize($yc-bg, 0.08);
 }
 
-// ── Header ───────────────────────────────────────────────────────────────────
+.root-closing {
+  background-color: transparent;
+  color: transparent;
+
+  .section-label, .post-num, .post-title, .post-title.bold,
+  .post-meta, .sig-time, .footer-hint, .spinner-inline,
+  .resize-grip-icon { color: transparent; }
+  .btn-refresh label, .btn-always-on label, .btn-toggle label { color: transparent; }
+  scrollbar slider { background-color: transparent; }
+}
+
+// Header
 .header {
   padding-bottom: 0px;
 }
 
 .sig-time {
   font-size: 11px;
-  color: #91a5d5;
+  color: $yc-fg-dim;
+  transition: color 300ms ease;
 }
 
 .sig-offline {
   font-size: 16px;
-  color: #ff8080;
+  color: $yc-error;
 }
 
-
-// ── Section labels ───────────────────────────────────────────────────────────
+// Section labels
 .section-label {
   font-size: 11px;
-  color: #5e7caa;
+  color: $yc-outline;
   padding: 20px 0 10px 0;
+  transition: color 300ms ease;
 }
 
 .top5-section {
   margin-top: 0px;
 }
 
-// ── Scrollbar ────────────────────────────────────────────────────────────────
+// Scrollbar
 scrollbar {
   background-color: transparent;
 
@@ -60,20 +104,20 @@ scrollbar {
     min-width: 4px;
     min-height: 30px;
     border-radius: 2px;
-    background-color: rgba(94, 124, 170, 0.35);
-    transition: background-color 150ms ease;
+    background-color: transparentize($yc-outline, 0.65);
+    transition: background-color 300ms ease;
 
     &:hover {
-      background-color: rgba(94, 124, 170, 0.55);
+      background-color: transparentize($yc-outline, 0.45);
     }
 
     &:active {
-      background-color: rgba(122, 223, 255, 0.50);
+      background-color: transparentize($yc-primary, 0.50);
     }
   }
 }
 
-// ── Post list ────────────────────────────────────────────────────────────────
+// Post list
 .post-list {
   padding-top: 2px;
 }
@@ -85,17 +129,17 @@ scrollbar {
   transition: background-color 100ms ease;
 
   &:hover {
-    background-color: rgba(49, 154, 229, 0.13);
+    background-color: transparentize($yc-primary, 0.87);
   }
 
   &:active {
-    background-color: rgba(49, 154, 229, 0.28);
+    background-color: transparentize($yc-primary, 0.72);
   }
 }
 
 .post-btn.post-top {
   &:hover {
-    background-color: rgba(122, 223, 255, 0.10);
+    background-color: transparentize($yc-tertiary, 0.90);
   }
 }
 
@@ -105,28 +149,31 @@ scrollbar {
 
 .post-num {
   font-size: 11px;
-  color: #a5d3f0;
+  color: $yc-secondary;
   min-width: 28px;
   padding-right: 4px;
+  transition: color 300ms ease;
 }
 
 .post-title {
   font-size: 12px;
-  color: #e8e8e8;
+  color: $yc-fg;
+  transition: color 300ms ease;
 }
 
 .post-title.bold {
   font-weight: bold;
-  color: #ffffff;
+  color: $yc-fg;
 }
 
 .post-meta {
   font-size: 11px;
-  color: #91a5d5;
+  color: $yc-fg-dim;
   padding: 2px 0 3px 32px;
+  transition: color 300ms ease;
 }
 
-// ── Footer ────────────────────────────────────────────────────────────────────
+// Footer
 .footer {
   padding-top: 6px;
   padding-bottom: 8px;
@@ -134,7 +181,8 @@ scrollbar {
 
 .footer-hint {
   font-size: 11px;
-  color: #91a5d5;
+  color: $yc-fg-dim;
+  transition: color 300ms ease;
 }
 
 .btn-always-on {
@@ -144,27 +192,28 @@ scrollbar {
 
   label {
     font-size: 18px;
-    color: #5e7caa;
+    color: $yc-outline;
+    transition: color 300ms ease;
   }
 
   &:hover label {
-    color: #7adfff;
+    color: $yc-primary;
   }
 
   &:hover {
-    background-color: rgba(49, 154, 229, 0.12);
+    background-color: transparentize($yc-primary, 0.88);
   }
 
   &.active label {
-    color: #7adfff;
+    color: $yc-primary;
   }
 
   &.active {
-    background-color: rgba(122, 223, 255, 0.10);
+    background-color: transparentize($yc-primary, 0.90);
   }
 
   &.active:hover {
-    background-color: rgba(122, 223, 255, 0.18);
+    background-color: transparentize($yc-primary, 0.82);
   }
 }
 
@@ -174,15 +223,16 @@ scrollbar {
 
   label {
     font-size: 18px;
-    color: #5e7caa;
+    color: $yc-outline;
+    transition: color 300ms ease;
   }
 
   &:hover label {
-    color: #ff8080;
+    color: $yc-error;
   }
 
   &:hover {
-    background-color: rgba(255, 128, 128, 0.12);
+    background-color: transparentize($yc-error, 0.88);
   }
 }
 
@@ -194,41 +244,52 @@ scrollbar {
 
   label {
     font-size: 18px;
-    color: #5e7caa;
+    color: $yc-outline;
+    transition: color 300ms ease;
   }
 
   &:hover label {
-    color: #7adfff;
+    color: $yc-primary;
   }
 
   &:hover {
-    background-color: rgba(49, 154, 229, 0.20);
+    background-color: transparentize($yc-primary, 0.80);
   }
 
   &:active label {
-    color: #319ae5;
+    color: $yc-primary-container;
   }
 
   &:active {
-    background-color: rgba(49, 154, 229, 0.35);
+    background-color: transparentize($yc-primary, 0.65);
   }
 }
 
-// ── Resize grip ───────────────────────────────────────────────────────────────
+// Resize grip
 .resize-grip {
-  font-size: 13px;
-  color: #2e3d5a;
-  padding: 0 6px 0 4px;
-  transition: color 150ms ease;
+  padding: 2px 6px 0 4px;
+  border-radius: 3px;
+  transition: background-color 150ms ease;
 
   &:hover {
-    color: #5e7caa;
+    background-color: transparentize($yc-outline, 0.85);
   }
 }
 
-// ── Spinner ───────────────────────────────────────────────────────────────────
+.resize-grip-icon {
+  font-size: 13px;
+  color: $yc-outline-variant;
+  transition: color 300ms ease;
+
+  .resize-grip:hover & {
+    color: $yc-outline;
+  }
+}
+
+// Spinner
 .spinner-inline {
   font-size: 18px;
-  color: #7adfff;
+  color: $yc-primary;
   padding: 0 8px 0 0;
+  transition: color 300ms ease;
 }

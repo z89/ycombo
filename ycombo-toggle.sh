@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
-EWW_CFG="/home/archie/Documents/Github-Projects/ycombo/eww"
-eww --config "$EWW_CFG" active-windows | grep -q ycombo \
-  && eww --config "$EWW_CFG" close ycombo \
-  || eww --config "$EWW_CFG" open ycombo
+# YCOMBO — toggle show/hide
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PID_FILE="${XDG_RUNTIME_DIR:-/tmp}/ycombo/daemon.pid"
+
+if [[ -f "$PID_FILE" ]] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+    kill -USR2 "$(cat "$PID_FILE")"
+else
+    "$SCRIPT_DIR/ycombo-start.sh"
+fi

@@ -5,21 +5,30 @@
 (defpoll ycombo-data
   :interval "2s"
   :initial `{"updated":"loading…","offline":false,"latest":[],"top5":[]}`
-  `cat /tmp/ycombo_cache.json 2>/dev/null || echo '{"updated":"no data","offline":true,"latest":[],"top5":[]}' `)
+  `cat "$XDG_RUNTIME_DIR/ycombo/cache.json" 2>/dev/null || echo '{"updated":"no data","offline":true,"latest":[],"top5":[]}'`)
 
-(defpoll ycombo-loading
-  :interval "250ms"
-  `[ -f /tmp/ycombo_loading ] && echo true || echo false`)
+(defvar ycombo-loading false)
+(defvar ycombo-closing false)
 
 (defpoll spinner-char
   :interval "150ms"
-  `python3 -c "import time; c=['⠋','⠙','⠹','⠸','⠼','⠴','⠦','⠧','⠇','⠏']; print(c[int(time.time()*6.67)%10])"`)
+  `echo "⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏" | awk -v i=$(( 10#$(date +%s%N | cut -c10-11) % 10 + 1)) '{print $i}'`)
+
+;; ── Paths ────────────────────────────────────────────────────────────────────
+;; Set by ycombo-start.sh via: eww update ycombo-cfg=<path>
+;; All scripts resolve relative to this.
+(defpoll ycombo-cfg
+  :interval "999h"
+  :initial ""
+  `cat "$XDG_RUNTIME_DIR/ycombo/eww-cfg" 2>/dev/null`)
 
 ;; ── Window ───────────────────────────────────────────────────────────────────
+;; Width is fixed at open time. To change width, resize script closes and
+;; reopens the window. Scroll height is dynamic via defvar.
 (defwindow ycombo
   :monitor    0
   :geometry   (geometry :x "15px" :y "46px" :width "860px" :anchor "top left")
-  :stacking   "bg"
+  :stacking   "bottom"
   :exclusive  false
   :focusable  false
   (ycombo-root))
@@ -28,15 +37,16 @@
 (defvar ycombo-hovered false)
 (defvar ycombo-always-on false)
 (defvar ycombo-scroll-height 420)
+(defvar ycombo-fade-ts "0")
 
 (defwidget ycombo-root []
-  (eventbox :onhover "pid=$(cat /tmp/ycombo_fade.pid 2>/dev/null) && kill $pid 2>/dev/null; rm -f /tmp/ycombo_fade.pid; eww --config /home/archie/Documents/Github-Projects/ycombo/eww update ycombo-hovered=true"
-            :onhoverlost "${ycombo-always-on ? '' : '(sleep 10 && eww --config /home/archie/Documents/Github-Projects/ycombo/eww update ycombo-hovered=false) & echo $! > /tmp/ycombo_fade.pid'}"
-    (box :class {ycombo-hovered ? "root root-visible" : "root root-hidden"} :orientation "v" :space-evenly false
+  (eventbox :onhover "eww --config ${ycombo-cfg} update ycombo-hovered=true ycombo-fade-ts=0"
+            :onhoverlost "${ycombo-always-on ? '' : 'ts=$(date +%s); eww --config ${ycombo-cfg} update ycombo-fade-ts=$ts; (sleep 10; [ \"$(eww --config ${ycombo-cfg} get ycombo-fade-ts)\" = \"$ts\" ] && eww --config ${ycombo-cfg} update ycombo-hovered=false) &'}"
+    (box :class {ycombo-closing ? "root root-closing" : (ycombo-hovered ? "root root-visible" : "root root-hidden")} :orientation "v" :space-evenly false
       (ycombo-header)
       (ycombo-latest)
       (box :class "top5-section" :orientation "v" :space-evenly false
-      (label :class "section-label" :halign "start" :text "    MUST READ — TOP 5")
+      (label :class "section-label" :halign "start" :text "      MUST READ — TOP 5")
         (ycombo-top5))
       (ycombo-footer))))
 
@@ -44,11 +54,17 @@
 (defwidget ycombo-header []
   (box :class "header" :orientation "h" :space-evenly false :hexpand true))
 
-;; ── Latest 10 ────────────────────────────────────────────────────────────────
+;; ── Latest ───────────────────────────────────────────────────────────────────
 (defwidget ycombo-latest []
   (box :class "section" :orientation "v" :space-evenly false
-    (label :class "section-label" :halign "start"
-           :text "    LATEST — PAST 14 DAYS")
+    (box :orientation "h" :space-evenly false :hexpand true
+      (label :class "section-label" :halign "start"
+             :text "      LATEST — PAST 14 DAYS")
+      (box :hexpand true)
+      (eventbox :class "resize-grip"
+                :tooltip "Scroll to resize height"
+                :onscroll "${ycombo-cfg}/../ycombo-resize.sh {} &"
+        (label :class "resize-grip-icon" :text "⠿")))
     (scroll :vscroll true :hscroll false :height {ycombo-scroll-height}
       (box :class "post-list" :orientation "v" :space-evenly false
         (for post in {ycombo-data.latest}
@@ -81,23 +97,22 @@
   (box :class "footer" :orientation "h" :space-evenly false :hexpand true
     (button :class "btn-refresh"
             :tooltip "Force refresh"
-            :onclick "/home/archie/Documents/Github-Projects/ycombo/ycombo-refresh.sh &"
+            :onclick "${ycombo-cfg}/../ycombo-refresh.sh &"
       "")
     (label :class "footer-hint" :text "  Last Updated ")
     (label :class "sig-time" :text {ycombo-data.offline ? "Never" : ycombo-data.updated})
     (box :hexpand true)
     (label :class "spinner-inline"
-           :visible {ycombo-loading == "true"}
+           :visible {ycombo-loading}
            :text {spinner-char})
     (label :class "sig-offline"
            :visible {ycombo-data.offline}
-           :text "  offline")
+           :text "   offline")
     (button :class {ycombo-always-on ? "btn-always-on active" : "btn-always-on"}
             :tooltip {ycombo-always-on ? "Disable always on" : "Keep always visible"}
-            :onclick "eww --config /home/archie/Documents/Github-Projects/ycombo/eww update ycombo-always-on=${ycombo-always-on ? 'false' : 'true'}"
+            :onclick "eww --config ${ycombo-cfg} update ycombo-always-on=${ycombo-always-on ? 'false' : 'true'}"
       "")
     (button :class "btn-toggle"
             :tooltip "Hide YCOMBO"
-            :onclick "eww --config /home/archie/Documents/Github-Projects/ycombo/eww close ycombo"
-      "")
-    (label :class "resize-grip" :text "⠿")))
+            :onclick "eww --config ${ycombo-cfg} update ycombo-closing=true; (sleep 0.25 && eww --config ${ycombo-cfg} close ycombo && eww --config ${ycombo-cfg} update ycombo-closing=false) &"
+      "")))

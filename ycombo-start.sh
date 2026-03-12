@@ -1,22 +1,15 @@
 #!/usr/bin/env bash
-# YCOMBO — startup: (re)start daemon and eww widget
+# YCOMBO — start the GTK widget daemon
 
-YCOMBO_DIR="/home/archie/Documents/Github-Projects/ycombo"
-EWW_CFG="$YCOMBO_DIR/eww"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PID_FILE="${XDG_RUNTIME_DIR:-/tmp}/ycombo/daemon.pid"
 
-# Kill stale data daemon and relaunch
-pkill -f ycombo-daemon.sh 2>/dev/null || true
-"$YCOMBO_DIR/ycombo-daemon.sh" &
+# Kill stale daemon
+if [[ -f "$PID_FILE" ]]; then
+    kill "$(cat "$PID_FILE")" 2>/dev/null || true
+    rm -f "$PID_FILE"
+fi
 
-# Kill stale resize daemon
-pkill -f ycombo-resize.py 2>/dev/null || true
-
-# Kill stale eww and reopen
-eww --config "$EWW_CFG" kill 2>/dev/null || true
-sleep 2
-eww --config "$EWW_CFG" open ycombo
-sleep 1
-xdotool search --name "Eww - ycombo" windowlower 2>/dev/null || true
-
-# Start resize daemon (finds window, applies saved width, then enters XRecord loop)
-python3 "$YCOMBO_DIR/ycombo-resize.py" &
+# Start daemon
+python3 "$SCRIPT_DIR/ycombo.py" --daemon &
+disown

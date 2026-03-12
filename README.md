@@ -14,25 +14,27 @@ YCOMBO is an [eww](https://github.com/elkowar/eww) desktop widget that continuou
 
 - **Latest posts** all relevant posts from the past 14 days, refreshed every 5 minutes, sorted by recency, keyword-filtered for AI/agent/LLM relevance
 - **Must Read Top 5** highest-scored posts (80+ points) from the past 30 days, sorted by votes
+- **Async fetching** all 13 Algolia queries run concurrently via aiohttp, completing in under 1 second
 - **Scrollable latest posts** the latest section has a styled scrollbar for browsing long lists
 - **Fade-on-idle** panel sits at 10% opacity, fades to 100% on hover, fades back after 10 seconds
+- **Close animation** 200ms fade-out when hiding the widget
 - **Always-on mode** pin button next to hide keeps the widget fully visible, disabling the fade-out timer
+- **Keyboard resize** Super+Ctrl+Arrow keys to resize width and scroll height, dimensions persisted across restarts
 - **Pywal-aware styling** colours pulled from your wallpaper theme (requires pywal)
 - **Offline resilience** serves cached results when the network is unavailable, shows "Never" as last updated
 - **Zero auth** uses the [Algolia HN API](https://hn.algolia.com/api) (free, no key required)
 - **Clickable posts** opens directly on Hacker News in Chromium
-- **Keyboard shortcuts** `Super+F5` to refresh, `Super+Shift+F5` to toggle (only with i3 config setup)
+- **Keyboard shortcuts** `Super+F5` to refresh, `Super+Shift+F5` to toggle
 
 ---
 
 ## Requirements
 
 - Arch Linux (or any distro with `pacman`)
-- `eww` (installed via yay if missing)
-- `xdotool`
-- `python3` + `python-requests`
+- Hyprland (Wayland compositor)
+- `eww` wayland build (`eww-git` via yay)
+- `python3` + `python-aiohttp`
 - FiraCode Nerd Font Mono
-- i3 window manager
 
 ---
 
@@ -45,10 +47,10 @@ cd ~/Documents/Github-Projects/ycombo
 ```
 
 The installer will:
-1. Install `eww`, `xdotool`, and `python-requests` if missing
+1. Install `eww-git` and `python-aiohttp` if missing
 2. Set executable permissions on all scripts
 3. Fetch initial HN data
-4. Add YCOMBO to your i3 config (window rules, autostart, keybindings)
+4. Add YCOMBO to your Hyprland config (window rules, autostart, keybindings)
 5. Launch the widget
 
 ---
@@ -57,14 +59,14 @@ The installer will:
 
 | File | Purpose |
 |---|---|
-| `ycombo.py` | Fetches and filters HN posts via Algolia API, writes `/tmp/ycombo_cache.json` |
-| `eww/eww.yuck` | Widget layout: sections, posts, footer, hover opacity |
+| `ycombo.py` | Async daemon: fetches and filters HN posts, writes cache, handles signals |
+| `eww/eww.yuck` | Widget layout: sections, posts, footer, hover opacity, close animation |
 | `eww/eww.scss` | Styling: pywal colours, opacity transitions, hover states |
-| `ycombo-daemon.sh` | Background loop running `ycombo.py` every 5 minutes |
-| `ycombo-start.sh` | Startup script: kills stale processes, launches daemon + widget |
-| `ycombo-refresh.sh` | Force refresh with loading spinner |
-| `ycombo-toggle.sh` | Toggle widget visibility |
-| `install.sh` | One-command setup |
+| `ycombo-start.sh` | Startup: kills stale processes, starts daemon, opens widget, restores dimensions |
+| `ycombo-refresh.sh` | Signal-based refresh trigger |
+| `ycombo-toggle.sh` | Toggle widget visibility with close animation |
+| `ycombo-resize.sh` | Keybind-driven resize via hyprctl IPC |
+| `install.sh` | One-command setup for Hyprland |
 
 ---
 
@@ -94,16 +96,16 @@ Colours are set in `eww/eww.scss` using the pywal palette from your desktop them
 ## How It Works
 
 ```
-Every 5 minutes:
-  ycombo-daemon.sh > ycombo.py
-                       |-- fetch_latest()  > 8 Algolia queries, deduplicated,
-                       |                      keyword-filtered, sorted by date
-                       +-- fetch_top5()    > 5 Algolia queries, 80+ pts,
-                                              last 30d, sorted by score > top 5
-                     |
-                  Writes /tmp/ycombo_cache.json
-                     |
-                  eww polls cache every 2s > widget updates
+ycombo.py --daemon (runs in background):
+  Every 5 minutes (or on SIGUSR1):
+    |-- fetch_latest()  > 8 Algolia queries (concurrent)
+    |                      deduplicated, keyword-filtered, sorted by date
+    +-- fetch_top5()    > 5 Algolia queries (concurrent)
+                           80+ pts, last 30d, sorted by score > top 5
+    |
+    Writes $XDG_RUNTIME_DIR/ycombo/cache.json
+    |
+    eww polls cache every 2s > widget updates
 ```
 
 ---
@@ -111,9 +113,10 @@ Every 5 minutes:
 ## Uninstall
 
 ```bash
-pkill -f ycombo-daemon.sh
+# Stop daemon
+kill "$(cat "${XDG_RUNTIME_DIR}/ycombo/daemon.pid")" 2>/dev/null
 eww --config ~/Documents/Github-Projects/ycombo/eww close ycombo
-# Remove YCOMBO lines from ~/.config/i3/config
+# Remove YCOMBO lines from ~/.config/hypr/hyprland.conf
 # Delete the ycombo directory
 ```
 
