@@ -68,7 +68,7 @@ if [[ -f "$HYPR_CONFIG" ]]; then
     fi
 
     add_hypr "bind = \$mainMod, F5, exec, $SCRIPT_DIR/ycombo-refresh.sh"
-    add_hypr "bind = \$mainMod SHIFT, F5, exec, $SCRIPT_DIR/ycombo-toggle.sh"
+    add_hypr "bind = \$mainMod, Y, exec, $SCRIPT_DIR/ycombo-toggle.sh"
     add_hypr "exec-once = $SCRIPT_DIR/ycombo-start.sh"
 else
     warn "Hyprland config not found at $HYPR_CONFIG — skipping Hyprland setup."
@@ -92,7 +92,7 @@ info "YCOMBO is live on your desktop."
 echo ""
 echo "  Click any post           — opens on Hacker News"
 echo "  Super+F5                 — force refresh"
-echo "  Super+Shift+F5           — toggle show/hide"
+echo "  Super+Y                  — toggle open/close"
 echo "  Scroll on grip icon      — resize height"
 echo "  Shift+scroll on grip     — resize width"
 echo ""

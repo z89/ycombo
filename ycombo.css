@@ -26,26 +26,11 @@ box, label, scrolledwindow, viewport {
     background-image: none;
 }
 
-/* Root container - opacity-based fade */
+/* Root container */
 .root {
     background-color: $yc_bg_98;
     padding: 0px 20px 10px 16px;
     border-radius: 10px;
-    opacity: 1;
-    transition: opacity 300ms ease;
-}
-
-.root.hidden {
-    opacity: 0.30;
-}
-
-.root.visible {
-    opacity: 1;
-}
-
-.root.closing {
-    opacity: 0;
-    transition: opacity 200ms ease;
 }
 
 /* Latest header row - padding here so grip + label both center */
@@ -195,18 +180,6 @@ scrollbar slider:active {
 
 .btn-refresh.hover label {
     color: #77dd77;
-}
-
-.btn-always-on.hover label {
-    color: #00e5ff;
-}
-
-.btn-always-on.active label {
-    color: #00e5ff;
-}
-
-.btn-always-on.active.hover label {
-    color: #00ffff;
 }
 
 .btn-toggle label {

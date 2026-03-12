@@ -5,9 +5,8 @@ Native GTK3 + gtk-layer-shell widget for Hyprland/Wayland.
 
 Modes:
   (no flag)   Single fetch and exit (for install/testing)
-  --daemon    GTK app with async fetch loop, SIGUSR1=refresh, SIGUSR2=toggle
+  --daemon    GTK app with async fetch loop, SIGUSR1=refresh
   --refresh   Send SIGUSR1 to running daemon
-  --toggle    Send SIGUSR2 to running daemon
 """
 
 import asyncio
@@ -295,8 +294,6 @@ def write_cache(data: dict[str, Any]) -> None:
 SPINNER_CHARS = "\u280b\u2819\u2839\u2838\u283c\u2834\u2826\u2827\u2807\u280f"
 ICON_REFRESH  = "\uf021"
 ICON_OFFLINE  = "\uf071"
-ICON_EYE      = "\uf06e"
-ICON_EYE_OFF  = "\uf070"
 ICON_CLOSE    = "\uf00d"
 ICON_GRIP     = "\u283f"
 
@@ -325,11 +322,7 @@ class YComboWindow(Gtk.Window):
         self.connect("screen-changed", self._on_screen_changed)
 
         # State
-        self.hovered = False
-        self._shown = True
-        self.always_on = False
         self.loading = False
-        self.fade_timer_id = None
         self.spinner_timer_id = None
         self.spinner_idx = 0
         self._scroll_accum_x = 0.0
@@ -412,22 +405,12 @@ class YComboWindow(Gtk.Window):
             GLib.timeout_add(200, self._apply_css)  # debounce
 
     def _build_ui(self) -> None:
-        # Root eventbox for hover detection
-        self.eventbox = Gtk.EventBox()
-        self.eventbox.set_events(
-            Gdk.EventMask.ENTER_NOTIFY_MASK | Gdk.EventMask.LEAVE_NOTIFY_MASK
-        )
-        self.eventbox.connect("enter-notify-event", self._on_hover_enter)
-        self.eventbox.connect("leave-notify-event", self._on_hover_leave)
-        self.add(self.eventbox)
-
         # Root box - left/top aligned within the fixed-size transparent window
         self.root_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.root_box.set_halign(Gtk.Align.START)
         self.root_box.set_valign(Gtk.Align.START)
         self.root_box.get_style_context().add_class("root")
-        self.root_box.get_style_context().add_class("hidden")
-        self.eventbox.add(self.root_box)
+        self.add(self.root_box)
 
         # Helper: icon button using EventBox + Label (no Adwaita padding)
         def _icon_btn(icon: str, css_class: str, tooltip: str, callback) -> Gtk.EventBox:
@@ -511,15 +494,8 @@ class YComboWindow(Gtk.Window):
         self._refresh_btn.set_margin_end(5)
         top_bar.pack_start(self._refresh_btn, False, False, 0)
 
-        # Always-on button
-        self._always_btn = _icon_btn(ICON_EYE_OFF, "btn-always-on", "Keep always visible", self._on_always_on_click)
-        self._always_label = self._always_btn.get_child().get_center_widget()
-        self._always_btn.set_valign(Gtk.Align.CENTER)
-        self._always_btn.set_margin_end(5)
-        top_bar.pack_start(self._always_btn, False, False, 0)
-
         # Close button (larger)
-        self._close_btn = _icon_btn(ICON_CLOSE, "btn-toggle", "Hide YCOMBO", self._on_close_click)
+        self._close_btn = _icon_btn(ICON_CLOSE, "btn-toggle", "Close YCOMBO", self._on_close_click)
         self._close_btn.set_valign(Gtk.Align.CENTER)
         self._close_btn.set_size_request(32, 32)
         top_bar.pack_start(self._close_btn, False, False, 0)
@@ -619,38 +595,6 @@ class YComboWindow(Gtk.Window):
         self.latest_box.show_all()
         self.top5_box.show_all()
 
-    # ── Hover / fade ─────────────────────────────────────────────────────────
-
-    def _on_hover_enter(self, _w: Gtk.Widget, _e: Gdk.EventCrossing) -> bool:
-        self.hovered = True
-        if self.fade_timer_id:
-            GLib.source_remove(self.fade_timer_id)
-            self.fade_timer_id = None
-        ctx = self.root_box.get_style_context()
-        ctx.remove_class("hidden")
-        ctx.add_class("visible")
-        return False
-
-    def _on_hover_leave(self, _w: Gtk.Widget, _e: Gdk.EventCrossing) -> bool:
-        self.hovered = False
-        win = self.get_window()
-        if win:
-            win.set_cursor(None)
-        if self.always_on:
-            return False
-        if self.fade_timer_id:
-            GLib.source_remove(self.fade_timer_id)
-        self.fade_timer_id = GLib.timeout_add_seconds(10, self._do_fade_out)
-        return False
-
-    def _do_fade_out(self) -> bool:
-        if not self.hovered and not self.always_on:
-            ctx = self.root_box.get_style_context()
-            ctx.remove_class("visible")
-            ctx.add_class("hidden")
-        self.fade_timer_id = None
-        return False  # don't repeat
-
     # ── Resize ───────────────────────────────────────────────────────────────
 
     def _on_resize_scroll(self, _w: Gtk.Widget, event: Gdk.EventScroll) -> bool:
@@ -720,43 +664,9 @@ class YComboWindow(Gtk.Window):
         if self.refresh_event:
             self.refresh_event.set()
 
-    def _on_always_on_click(self, _w: Gtk.Widget) -> None:
-        self.always_on = not self.always_on
-        ctx = self._always_btn.get_style_context()
-        if self.always_on:
-            ctx.add_class("active")
-            self._always_label.set_text(ICON_EYE)
-            self._always_btn.set_tooltip_text("Disable always on")
-            # Cancel pending fade
-            if self.fade_timer_id:
-                GLib.source_remove(self.fade_timer_id)
-                self.fade_timer_id = None
-        else:
-            ctx.remove_class("active")
-            self._always_label.set_text(ICON_EYE_OFF)
-            self._always_btn.set_tooltip_text("Keep always visible")
-
     def _on_close_click(self, _w: Gtk.Widget) -> None:
-        self._set_shown(False)
-
-    def _set_shown(self, shown: bool) -> None:
-        ctx = self.root_box.get_style_context()
-        self._shown = shown
-        if shown:
-            ctx.remove_class("hidden")
-            ctx.remove_class("closing")
-            ctx.add_class("visible")
-            log.info("shown")
-        else:
-            ctx.remove_class("visible")
-            ctx.remove_class("hidden")
-            ctx.add_class("closing")
-            log.info("hidden")
-
-    def toggle_visibility(self) -> None:
-        shown = getattr(self, "_shown", True)
-        log.info("toggle_visibility called, currently shown=%s", shown)
-        self._set_shown(not shown)
+        self.shutdown()
+        Gtk.main_quit()
 
     # ── Spinner ──────────────────────────────────────────────────────────────
 
@@ -852,7 +762,6 @@ def run_daemon() -> None:
 
     # Signal handlers (run on GLib main loop via GLib.unix_signal_add)
     GLib.unix_signal_add(GLib.PRIORITY_HIGH, signal.SIGUSR1, lambda: (win.refresh_event.set(), True)[1])
-    GLib.unix_signal_add(GLib.PRIORITY_HIGH, signal.SIGUSR2, lambda: (win.toggle_visibility(), True)[1])
     GLib.unix_signal_add(GLib.PRIORITY_HIGH, signal.SIGTERM, lambda: (win.shutdown(), Gtk.main_quit(), True)[2])
     GLib.unix_signal_add(GLib.PRIORITY_HIGH, signal.SIGINT, lambda: (win.shutdown(), Gtk.main_quit(), True)[2])
 
@@ -873,11 +782,6 @@ def main() -> None:
             data = asyncio.run(do_fetch())
             write_cache(data)
             print(json.dumps(data))
-    elif "--toggle" in sys.argv:
-        if send_signal(signal.SIGUSR2):
-            log.info("sent SIGUSR2 to daemon")
-        else:
-            log.warning("no running daemon")
     else:
         data = asyncio.run(do_fetch())
         write_cache(data)

@@ -19,7 +19,7 @@ YCOMBO is a native GTK3 desktop widget for Hyprland/Wayland that continuously su
 - **Offline resilience** serves cached results when the network is unavailable, shows "Never" as last updated
 - **Zero auth** uses the [Algolia HN API](https://hn.algolia.com/api) (free, no key required)
 - **Clickable posts** opens directly on Hacker News
-- **Keyboard shortcuts** `Super+F5` to refresh, `Super+Shift+F5` to toggle
+- **Keyboard shortcuts** `Super+F5` to refresh, `Super+Y` to toggle
 
 ---
 
