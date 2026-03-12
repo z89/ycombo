@@ -3,11 +3,6 @@
 > AI & Dev Intelligence Feed: always-on HN desktop widget
 
 YCOMBO is a native GTK3 desktop widget for Hyprland/Wayland that continuously surfaces the most relevant Hacker News posts on **AI agents, LLM engineering, agentic workflows, and software engineering best practices**, filtered from the noise, displayed directly on your desktop.
-
-<div align="center">
-  <img src="demo.gif" width="600" alt="YCOMBO widget" />
-</div>
-
 ---
 
 ## Features

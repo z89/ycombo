@@ -306,7 +306,7 @@ class YComboWindow(Gtk.Window):
 
         # Layer shell
         GtkLayerShell.init_for_window(self)
-        GtkLayerShell.set_layer(self, GtkLayerShell.Layer.TOP)
+        GtkLayerShell.set_layer(self, GtkLayerShell.Layer.BOTTOM)
         GtkLayerShell.set_exclusive_zone(self, -1)
         GtkLayerShell.set_anchor(self, GtkLayerShell.Edge.TOP, True)
         GtkLayerShell.set_anchor(self, GtkLayerShell.Edge.LEFT, True)
