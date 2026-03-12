@@ -28,7 +28,7 @@ box, label, scrolledwindow, viewport {
 
 /* Root container - opacity-based fade */
 .root {
-    background-color: $yc_bg_92;
+    background-color: $yc_bg_98;
     padding: 0px 20px 10px 16px;
     border-radius: 10px;
     opacity: 1;
@@ -148,18 +148,18 @@ scrollbar slider:active {
     font-family: "FiraCode Nerd Font Mono";
     font-size: 13px;
     font-weight: normal;
-    color: $yc_fg;
+    color: $yc_secondary;
 }
 
 .post-title.bold {
     font-weight: normal;
-    color: $yc_fg;
+    color: $yc_secondary;
 }
 
 .post-meta {
     font-family: "FiraCode Nerd Font Mono";
     font-size: 13px;
-    color: $yc_fg_dim;
+    color: $yc_outline_55;
     padding: 2px 0px 3px 32px;
 }
 

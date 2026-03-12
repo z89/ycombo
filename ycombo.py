@@ -114,7 +114,7 @@ def parse_colors(path: Path) -> dict[str, str]:
         subs[k] = v
     # Pre-computed alpha variants used in CSS template
     alpha_map = {
-        "yc_bg_92": ("yc_bg", 0.92),
+        "yc_bg_98": ("yc_bg", 0.98),
         "yc_outline_35": ("yc_outline", 0.35),
         "yc_outline_55": ("yc_outline", 0.55),
         "yc_outline_15": ("yc_outline", 0.15),
@@ -349,9 +349,8 @@ class YComboWindow(Gtk.Window):
         # Build UI
         self._build_ui()
 
-        # Fixed window size (transparent beyond content) - avoids compositor
-        # roundtrip bounce on resize. Only inner content changes visually.
-        self.set_size_request(MAX_WIDTH, MAX_SCROLL + 400)
+        # Size the window to fit content only - an oversized transparent
+        # window would capture input across the entire surface on Wayland.
         self.root_box.set_size_request(self.width, -1)
         self.scroll_win.set_size_request(-1, self.scroll_height)
 
@@ -490,14 +489,6 @@ class YComboWindow(Gtk.Window):
 
         top_bar.pack_start(Gtk.Box(), True, True, 0)  # spacer
 
-        # Spinner
-        self.spinner_label = Gtk.Label(label=SPINNER_CHARS[0])
-        self.spinner_label.get_style_context().add_class("spinner-inline")
-        self.spinner_label.set_visible(False)
-        self.spinner_label.set_no_show_all(True)
-        self.spinner_label.set_valign(Gtk.Align.CENTER)
-        top_bar.pack_start(self.spinner_label, False, False, 0)
-
         # Offline indicator
         self.offline_label = Gtk.Label(label=f" {ICON_OFFLINE}")
         self.offline_label.get_style_context().add_class("sig-offline")
@@ -515,6 +506,7 @@ class YComboWindow(Gtk.Window):
 
         # Refresh button
         self._refresh_btn = _icon_btn(ICON_REFRESH, "btn-refresh", "Force refresh", self._on_refresh_click)
+        self._refresh_label = self._refresh_btn.get_child().get_center_widget()
         self._refresh_btn.set_valign(Gtk.Align.CENTER)
         self._refresh_btn.set_margin_end(5)
         top_bar.pack_start(self._refresh_btn, False, False, 0)
@@ -715,12 +707,12 @@ class YComboWindow(Gtk.Window):
         return True
 
     def _resize_width(self, width: int) -> None:
-        """Resize inner content only - window stays fixed size."""
         self.root_box.set_size_request(width, -1)
+        self.resize(1, 1)  # let GTK recalculate from content
 
     def _resize_height(self, height: int) -> None:
-        """Resize scroll height only - window stays fixed size."""
         self.scroll_win.set_size_request(-1, height)
+        self.resize(1, 1)  # let GTK recalculate from content
 
     # ── Button handlers ──────────────────────────────────────────────────────
 
@@ -770,19 +762,21 @@ class YComboWindow(Gtk.Window):
 
     def _set_loading(self, active: bool) -> None:
         self.loading = active
-        self.spinner_label.set_visible(active)
         if active and not self.spinner_timer_id:
             self.spinner_timer_id = GLib.timeout_add(120, self._tick_spinner)
-        elif not active and self.spinner_timer_id:
-            GLib.source_remove(self.spinner_timer_id)
-            self.spinner_timer_id = None
+        elif not active:
+            if self.spinner_timer_id:
+                GLib.source_remove(self.spinner_timer_id)
+                self.spinner_timer_id = None
+            self._refresh_label.set_text(ICON_REFRESH)
 
     def _tick_spinner(self) -> bool:
         if not self.loading:
             self.spinner_timer_id = None
+            self._refresh_label.set_text(ICON_REFRESH)
             return False
         self.spinner_idx = (self.spinner_idx + 1) % len(SPINNER_CHARS)
-        self.spinner_label.set_text(SPINNER_CHARS[self.spinner_idx])
+        self._refresh_label.set_text(SPINNER_CHARS[self.spinner_idx])
         return True
 
     # ── Fetch thread ─────────────────────────────────────────────────────────
@@ -854,7 +848,6 @@ def run_daemon() -> None:
     win = YComboWindow()
     win.connect("destroy", lambda _w: Gtk.main_quit())
     win.show_all()
-    win.spinner_label.set_visible(False)
     win.offline_label.set_visible(False)
 
     # Signal handlers (run on GLib main loop via GLib.unix_signal_add)
